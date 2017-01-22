@@ -130,20 +130,20 @@
 
                 return sequences;
             },
-            traceBack(matrix, row, column) {
+            traceBack(matrix, local) {
 
                 var paths = [];
 
                 function follow(p) {
-
                     var r = p[p.length - 1][0];
                     var c = p[p.length - 1][1];
-
-                    while (r > 0 && c > 0) {
+                    while (r >= 0 && c >= 0) {
                         var flag = false;
                         var i = r;
                         var j = c;
                         var _p;
+
+                        if (local && matrix[i][j].score == 0) break;
 
                         if (matrix[i][j].diag) {
                             _p = ([--r, --c]);
@@ -174,33 +174,58 @@
                         if (_p)
                             p.push(_p);
 
+                        if(r == c && r == 0) break;
 
                     }
-                    if (r == 0 && c == 0)
+
+                    if (
+                        (local && matrix[p[p.length - 1][0]][p[p.length - 1][1]].score == 0) ||
+                        (!local && r == 0 && c == 0))
                         paths.push(p);
+
+
                 }
-                var s = [
-                    [row, column]
-                ];
-                //    paths.push(s);
-                follow(s);
+
+                if (local) {
+                    var max = matrix[0][0];
+
+                    for (var i = 0; i < matrix.length; i++)
+                        for (var j = 0; j < matrix[i].length; j++)
+                            max = max > matrix[i][j].score ? max : matrix[i][j].score;
+
+                    if (max == 0) return [];
+
+                    for (var i = 0; i < matrix.length; i++)
+                        for (var j = 0; j < matrix[i].length; j++)
+                            if (matrix[i][j].score == max)
+                                follow([
+                                    [i, j]
+                                ]);
+
+                } else follow([
+                    [matrix.length - 1, matrix[0].length - 1]
+                ]);
 
                 for (var i = 0; i < paths.length; i++)
                     for (var j = 0; j < paths[i].length; j++)
                         matrix[paths[i][j][0]][paths[i][j][1]].path = true;
 
-
                 return paths;
             },
             align: function(stringA, stringB, scoring, gap, local) {
-
+                console.log('building score matrix');
                 var m = this.buildMatrix(stringB.length + 1, stringA.length + 1);
 
-                for (var r = 1; r < m.length; r++)
-                    m[r][0].score = r * gap;
 
-                for (var c = 1; c < m[0].length; c++)
-                    m[0][c].score = c * gap;
+                for (var r = 1; r < m.length; r++) {
+                    m[r][0].score = local ? 0 : (r * gap);
+                    m[r][0].up = true;
+                }
+
+                for (var c = 1, s = 0; c < m[0].length; c++) {
+                    m[0][c].score = local ? 0 : (c * gap);
+                    m[0][c].left = true;
+                }
 
                 for (var r = 1; r < m.length; r++) {
                     for (var c = 1; c < m[r].length; c++) {
@@ -208,7 +233,6 @@
                         var left = m[r][c - 1].score + gap;
                         var up = m[r - 1][c].score + gap;
                         var diag = m[r - 1][c - 1].score + scoring(stringA[c - 1], stringB[r - 1]);
-                        console.log(left, up, diag);
                         var score = Math.max(left, up, diag);
 
                         // score = Math.max(left, up, diag,0);
@@ -221,9 +245,13 @@
                     }
                 }
 
-                var paths = this.traceBack(m, m.length - 1, m[0].length - 1);
+                console.log('calculating paths');
+                var paths = this.traceBack(m, local);
+                console.log('found ' + paths.length + ' paths');
 
+                console.log('building sequences');
                 var sequences = this.getSequences(m, paths, stringA, stringB);
+                console.log('found ' + sequences.length + ' sequences');
 
                 this.printSequences(sequences, scoring, gap);
 
@@ -239,24 +267,43 @@
 
 <body class="container" ng-app="sequenceAlignmentDemo" ng-controller="mainController">
     <div class="row">
+        <div class="col-xs-12">
+            <ul>
+                <li ng-repeat="e in examples">
+                    <a ng-click="loadExample(e)">{{e.stringA}} - {{e.stringB}} ({{e.local ? 'LOCAL' : 'GLOBAL'}})</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
-          <div class="form-inline">
-              <div class="form-group">
-                  <input type="text" class="form-control" placeholder="String A" ng-model="stringA" ng-change="clear()">
-              </div>
-              <div class="form-group">
-                  <input type="text" class="form-control" placeholder="String B" ng-model="stringB" ng-change="clear()">
-              </div>
-              <div class="form-group">
-                  <input type="text" class="form-control" style="max-width:50px" placeholder="gap" ng-model="gap" ng-change="clear()">
-              </div>
+            <div class="form-inline">
+                <div class="form-group">
+                    <input type="text" class="form-control" style="max-width: 150px;" placeholder="String A" ng-model="stringA" ng-change="clear()">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" style="max-width: 150px;" placeholder="String B" ng-model="stringB" ng-change="clear()">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" style="max-width:50px" placeholder="gap" ng-model="gap" ng-change="clear()">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" style="max-width:50px" placeholder="scoreOffset" ng-model="scoreOffset" ng-change="clear()">
+                </div>
+                <div class="form-group">
+                    <select class="form-control" ng-model="local" ng-change="clear()" ng-options="l.value as l.label for l in localOptions">
 
-              <button type="button" class="btn btn-default" ng-click="align()">Align</button>
-          </div>
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-default" ng-click="align()">Align</button>
+            </div>
         </div>
     </div>
 
-    <div class="row"><div class="col-xs-12"></div></div>
+    <div class="row">
+        <div class="col-xs-12"></div>
+    </div>
 
     <div class="row" ng-if="matrix">
         <div class="col-xs-6 col-xs-offset-3">
@@ -315,26 +362,61 @@
                     requireBase: false
                 });
             });
-            app.controller('mainController', ['$scope', '$location', function($scope, $location) {
 
-                // $scope.stringA = 'CGTGAATTCAT';
-                // $scope.stringB = 'GACTTAC';
 
-                //  $scope.stringA = 'GCGTA';
-                //  $scope.stringB = 'TGCAAT';
+            app.controller('mainController', ['$scope', '$location', '$httpParamSerializer', function($scope, $location, $httpParamSerializer) {
 
-                $scope.stringA = $location.search().stringA || 'GCATGCU';
-                $scope.stringB = $location.search().stringB || 'GATTACA';
+                $scope.examples = [{
+                    stringA: 'SEND',
+                    stringB: 'AND'
+                }, {
+                    stringA: 'GCATGCU',
+                    stringB: 'GATTACA'
+                }, {
+                    stringA: 'GCGTA',
+                    stringB: 'TGCAAT'
+                }, {
+                    stringA: 'CGTGAATTCAT',
+                    stringB: 'GACTTAC'
+                }, {
+                    stringA: 'TGTTACGG',
+                    stringB: 'GGTTGACTA',
+                    local: true,
+                    gap: -2,
+                    scoreOffset: 3
+                }];
+
+
+                $scope.stringA = $location.search().stringA || $scope.examples[0].stringA;
+                $scope.stringB = $location.search().stringB || $scope.examples[0].stringB;
 
                 // $scope.stringA = $location.search().stringA || 'SEND';
                 // $scope.stringB = $location.search().stringB || 'AND';
 
-                $scope.gap = -1;
+                $scope.gap = $location.search().gap !== undefined ? $location.search().gap : -1;
+                $scope.scoreOffset = $location.search().scoreOffset !== undefined ? $location.search().scoreOffset : 1;
+                $scope.local = $location.search().local == 'true';
+
+
+
+                $scope.localOptions = [{
+                    value: false,
+                    label: 'GLOBAL'
+                }, {
+                    value: true,
+                    label: 'LOCAL'
+                }];
+
+
 
                 //keeping it simple atm
                 function scoring(a, b) {
-                    return a != b ? -1 : 1;
+                    return (a != b ? -1 : 1) * $scope.scoreOffset; //temp solutions...
                 }
+
+                $scope.loadExample = function(e) {
+                    window.location = window.location.pathname + '?' + $httpParamSerializer(e)
+                };
 
                 $scope.clear = function() {
                     $scope.matrix = undefined;
@@ -342,7 +424,7 @@
                 }
 
                 $scope.align = function() {
-                    var x = SequenceAlignemnt.align($scope.stringA, $scope.stringB, scoring, $scope.gap * 1);
+                    var x = SequenceAlignemnt.align($scope.stringA, $scope.stringB, scoring, $scope.gap * 1, $scope.local);
                     $scope.matrix = x.matrix;
                     $scope.sequences = x.sequences;
                 }
