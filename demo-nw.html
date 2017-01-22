@@ -1,0 +1,320 @@
+<html>
+
+<head>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.js"></script>
+
+    <style>
+        .arrow-up,
+        .arrow-left,
+        .arrow-diag {
+            position: absolute;
+            top: auto;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .arrow-up {
+            margin-top: -13px;
+            margin-left: 3px;
+        }
+
+        .arrow-left {
+            margin-left: -24px;
+            margin-top: 6px;
+        }
+
+        .arrow-diag {
+            margin-top: -13px;
+            margin-left: -24px;
+            transform: rotateZ(45deg);
+        }
+
+        .path>.arrow-diag {
+            color: green;
+        }
+
+        .path>.arrow-left {
+            color: blue;
+        }
+
+        .path>.arrow-up {
+            color: red;
+        }
+
+        .path {
+            border: 3px solid #777;
+        }
+
+        td {
+            min-width: 51px;
+        }
+    </style>
+
+    <script>
+        var SequenceAlignemnt = {
+            buildMatrix: function(rows, cols) {
+                var m = [];
+                for (var r = 0; r < rows; r++) {
+                    m[r] = [];
+                    for (var c = 0; c < cols; c++) {
+                        m[r][c] = {
+                            score: 0,
+                            up: false,
+                            left: false,
+                            diag: false,
+                            path: false
+                        };
+                    }
+                }
+
+                return m;
+            },
+            printSequences: function(sequences, scoring, gap) {
+                //      console.log(sequences);
+                for (var i = 0; i < sequences.length; i++) {
+                    console.log('\n');
+                    var s = 0;
+                    for (var j = 0; j < sequences[i].stringA.length; j++) {
+                        if (sequences[i].stringA[j] == '-' || sequences[i].stringB[j] == '-')
+                            s += gap;
+                        else s += scoring(sequences[i].stringA[j], sequences[i].stringB[j]);
+                    }
+                    console.log(sequences[i].stringA);
+                    console.log(sequences[i].stringB);
+                    console.log(s);
+                }
+
+            },
+            getSequences(paths, stringA, stringB) {
+
+                var sequences = [];
+
+                for (var i = 0; i < paths.length; i++) {
+
+                    var s = {
+                        stringA: '',
+                        stringB: ''
+                    };
+                    for (var j = paths[i].length - 1; j >= 0; j--) {
+
+                        var p = paths[i][j];
+                        //  if(p[0] == p[1] && p[0] == 0) continue;
+
+                        var nextP = paths[i][j - 1];
+
+
+                        if (p[0] + 1 == nextP[0] && p[1] + 1 == nextP[1]) {
+                            s.stringA += stringA[nextP[1] - 1];
+                            s.stringB += stringB[nextP[0] - 1];
+                        } else if (p[1] + 1 == nextP[1]) {
+                            s.stringA += stringA[nextP[1] - 1];
+                            s.stringB += '-';
+                        } else if (p[0] + 1 == nextP[0]) {
+                            s.stringA += '-';
+                            s.stringB += stringB[nextP[0] - 1];
+                        }
+                        if (j - 1 == 0) break;
+
+
+                    }
+
+                    sequences.push(s);
+                }
+
+                return sequences;
+            },
+            traceBack(matrix, row, column) {
+
+                var paths = [];
+
+                function follow(p) {
+
+                    var r = p[p.length - 1][0];
+                    var c = p[p.length - 1][1];
+                    matrix[r][c].path = true;
+
+                    while (r > 0 && c > 0) {
+                        var flag = false;
+                        var i = r;
+                        var j = c;
+                        var _p;
+
+
+                        if (matrix[i][j].diag) {
+                            _p = ([--r, --c]);
+                            flag = true;
+                        }
+
+                        if (matrix[i][j].up) {
+                            if (flag) {
+                                var s = p.slice();
+                                s.push([i - 1, j]);
+                                paths.push(s);
+                                follow(s);
+                            } else
+                                _p = ([--r, c]);
+                            flag = true;
+                        }
+
+                        if (matrix[i][j].left) {
+                            if (flag) {
+                                var s = p.slice();
+                                s.push([i, j - 1]);
+                                paths.push(s);
+                                follow(s);
+                            } else
+                                _p = ([r, --c]);
+                        }
+
+                        if (_p) {
+                            p.push(_p);
+                            matrix[r][c].path = true;
+                        }
+
+                    }
+                }
+                var s = [
+                    [row, column]
+                ];
+                paths.push(s);
+                follow(s);
+
+
+                return paths;
+            },
+            align: function(stringA, stringB, scoring, indel, gap, local) {
+
+                var m = this.buildMatrix(stringB.length + 1, stringA.length + 1);
+
+                for (var r = 1; r < m.length; r++)
+                    m[r][0].score = r * gap;
+
+                for (var c = 1; c < m[0].length; c++)
+                    m[0][c].score = c * gap;
+
+                for (var r = 1; r < m.length; r++) {
+                    for (var c = 1; c < m[r].length; c++) {
+
+                        var left = m[r][c - 1].score + indel;
+                        var up = m[r - 1][c].score + indel;
+                        var diag = m[r - 1][c - 1].score + scoring(stringA[c - 1], stringB[r - 1]);
+
+                        var score = Math.max(left, up, diag);
+
+                        // score = Math.max(left, up, diag,0);
+
+                        m[r][c].left = (left === score);
+                        m[r][c].up = (up === score);
+                        m[r][c].diag = (diag === score);
+
+                        m[r][c].score = score < 0 && local ? 0 : score;
+                    }
+                }
+
+
+                var paths = this.traceBack(m, m.length - 1, m[0].length - 1);
+                var sequences = this.getSequences(paths, stringA, stringB);
+                this.printSequences(sequences, scoring, gap);
+
+                return {
+                    matrix: m,
+                    sequences: sequences
+                };
+            }
+
+        };
+    </script>
+</head>
+
+<body class="container" ng-app="sequenceAlignmentDemo" ng-controller="mainController">
+    <div class="row">
+        <div class="col-xs-12">
+            <input type="text" class="form-control" ng-model="stringA">
+            <input type="text" class="form-control" ng-model="stringB">
+            <input type="text" class="form-control" ng-model="gap">
+            <input type="text" class="form-control" ng-model="indel">
+            <button ng-click="align()">Align</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-6 col-xs-offset-3">
+            <table class="table table-bordered text-center" style="width:455px">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td ng-repeat="s in stringA.split('') track by $index"><strong>{{s}}</strong></td>
+                </tr>
+
+                <tr ng-repeat="row in matrix track by $index" ng-init="rowIndex = $index">
+                    <td><strong ng-if="$index > 0">{{stringB[$index-1]}}</strong></td>
+                    <td ng-repeat="cell in matrix[rowIndex]  track by $index">
+                        <div ng-init="t = tMatrix[rowIndex][$index]" ng-class="{'path':cell.path}">
+                            <span class="glyphicon glyphicon-arrow-left arrow-left" ng-if=" cell.left "></span>
+                            <span class="glyphicon glyphicon-arrow-up arrow-up" ng-if=" cell.up "></span>
+                            <span class="glyphicon glyphicon-arrow-left arrow-diag" ng-if=" cell.diag"></span>
+                            <span>{{cell.score}}</span>
+                        </div>
+                    </td>
+
+                    <!-- <th ng-repeat="s in stringA.split('') track by $index">{{s}}</th> -->
+                </tr>
+
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-6 col-xs-offset-3">
+            <ul>
+                <li ng-repeat="s in sequences">
+                    {{s.stringA}}<br> {{s.stringB}}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var app = angular.module('sequenceAlignmentDemo', []);
+
+
+
+            app.controller('mainController', ['$scope', function($scope) {
+                $scope.stringA = 'GCATGCU';
+                $scope.stringB = 'GATTACA';
+
+                // $scope.stringA = 'CGTGAATTCAT';
+                // $scope.stringB = 'GACTTAC';
+
+                //  $scope.stringA = 'GCGTA';
+                //  $scope.stringB = 'TGCAAT';
+
+                $scope.gap = -1;
+                $scope.indel = -1;
+
+                //keeping it simple atm
+                function scoring(a, b) {
+                    return a != b ? -1 : 1;
+                }
+
+                $scope.align = function() {
+                    var x = SequenceAlignemnt.align($scope.stringA, $scope.stringB, scoring, $scope.indel, $scope.gap);
+                    $scope.matrix = x.matrix;
+                    $scope.sequences = x.sequences;
+                }
+
+                $scope.align();
+
+            }]);
+
+
+
+        })();
+    </script>
+
+</body>
+
+</html>
