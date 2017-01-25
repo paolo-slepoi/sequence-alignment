@@ -53,8 +53,10 @@
             min-width: 51px;
         }
 
-        .table{
-          width:455px; margin:0 auto; margin-top:25px
+        .table {
+            width: 455px;
+            margin: 0 auto;
+            margin-top: 25px
         }
     </style>
 
@@ -104,7 +106,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-9">
+                <div class="col-md-3">
                     <div class="dropdown">
                         <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Examples<span class="caret"></span>
   </button>
@@ -115,6 +117,23 @@
                         </ul>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="showPaths">Show Paths</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="showArrows">Show Arrows</label>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="col-md-3">
 
                     <button type="button" class="btn btn-success col-md-12" ng-click="align()">Align</button>
@@ -128,7 +147,7 @@
     </div>
     <div class="row" ng-if="matrix">
         <div class="col-md-12">
-            <table class="table table-bordered text-center table-responsive" >
+            <table class="table table-bordered text-center table-responsive">
                 <tr>
                     <td></td>
                     <td></td>
@@ -138,10 +157,10 @@
                 <tr ng-repeat="row in matrix track by $index" ng-init="rowIndex = $index">
                     <td><strong ng-if="$index > 0">{{stringB[$index-1]}}</strong></td>
                     <td ng-repeat="cell in matrix[rowIndex]  track by $index">
-                        <div ng-init="t = tMatrix[rowIndex][$index]" ng-class="{'path':cell.path}">
-                            <span class="glyphicon glyphicon-arrow-left arrow-left" ng-if=" cell.left "></span>
-                            <span class="glyphicon glyphicon-arrow-up arrow-up" ng-if=" cell.up "></span>
-                            <span class="glyphicon glyphicon-arrow-left arrow-diag" ng-if=" cell.diag"></span>
+                        <div ng-init="t = tMatrix[rowIndex][$index]" ng-class="{'path':cell.path  && showPaths }">
+                            <span class="glyphicon glyphicon-arrow-left arrow-left" ng-if=" cell.left && showArrows "></span>
+                            <span class="glyphicon glyphicon-arrow-up arrow-up" ng-if=" cell.up  && showArrows"></span>
+                            <span class="glyphicon glyphicon-arrow-left arrow-diag" ng-if=" cell.diag  && showArrows"></span>
                             <span>{{cell.score}}</span>
                         </div>
                     </td>
@@ -193,7 +212,9 @@
                     stringB: 'ACGCA',
                     match: 2,
                     mismatch: -3,
-                    gap: -2
+                    gap: -2,
+                    showPaths:false,
+                    showArrows:false
                 }, {
                     stringA: 'ACTGATTCA',
                     stringB: 'ACGCATCA',
@@ -232,6 +253,9 @@
                 $scope.mismatch = $location.search().mismatch !== undefined ? $location.search().mismatch : -1;
                 $scope.match = $location.search().match !== undefined ? $location.search().match : 1;
                 $scope.local = $location.search().local == 'true';
+
+                $scope.showPaths = $location.search().showPaths !== undefined ? $location.search().showPaths == true: true;
+                $scope.showArrows = $location.search().showArrows !== undefined ? $location.search().showArrows == true : true;
 
 
 
