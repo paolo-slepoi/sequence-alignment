@@ -52,57 +52,83 @@
         td {
             min-width: 51px;
         }
+
+        .table{
+          width:455px; margin:0 auto; margin-top:25px
+        }
     </style>
 
 
 </head>
 
-<body class="container" ng-app="sequenceAlignmentDemo" ng-controller="mainController">
-    <div class="row">
-        <div class="col-xs-12">
-            <ul>
-                <li ng-repeat="e in examples">
-                    <a ng-click="loadExample(e)">{{e.stringA}} - {{e.stringB}} ({{e.local ? 'LOCAL' : 'GLOBAL'}})</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-8 col-xs-offset-2">
-            <div class="form-inline">
-                <div class="form-group">
-                    <input type="text" class="form-control" style="max-width: 150px;" placeholder="String A" ng-model="stringA" ng-change="clear()">
+<body ng-app="sequenceAlignmentDemo" ng-controller="mainController">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-8">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>String A</label>
+                        <input type="text" class="form-control" placeholder="String A" ng-model="stringA" ng-change="clear()">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" style="max-width: 150px;" placeholder="String B" ng-model="stringB" ng-change="clear()">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>String B</label>
+                        <input type="text" class="form-control" placeholder="String B" ng-model="stringB" ng-change="clear()">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" style="max-width:50px" placeholder="gap" ng-model="gap" ng-change="clear()">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Gap</label>
+                        <input type="text" class="form-control" placeholder="gap" ng-model="gap" ng-change="clear()">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" style="max-width:50px" placeholder="match" ng-model="match" ng-change="clear()">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Match</label>
+                        <input type="text" class="form-control" placeholder="match" ng-model="match" ng-change="clear()">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" style="max-width:50px" placeholder="mismatch" ng-model="mismatch" ng-change="clear()">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Mismatch</label>
+                        <input type="text" class="form-control" placeholder="mismatch" ng-model="mismatch" ng-change="clear()">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <select class="form-control" ng-model="local" ng-change="clear()" ng-options="l.value as l.label for l in localOptions">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select class="form-control" ng-model="local" ng-change="clear()" ng-options="l.value as l.label for l in localOptions"></select>
+                    </div>
+                </div>
 
-                    </select>
+                <div class="col-md-9">
+                    <div class="dropdown">
+                        <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Examples<span class="caret"></span>
+  </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li ng-repeat="e in examples">
+                                <a ng-click="loadExample(e)">{{e.stringA}} - {{e.stringB}} ({{e.local ? 'LOCAL' : 'GLOBAL'}})</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-3">
+
+                    <button type="button" class="btn btn-success col-md-12" ng-click="align()">Align</button>
                 </div>
 
-                <button type="button" class="btn btn-default" ng-click="align()">Align</button>
+
             </div>
         </div>
+        <div class="col-md-2">
+        </div>
     </div>
-
-    <div class="row">
-        <div class="col-xs-12"></div>
-    </div>
-
     <div class="row" ng-if="matrix">
-        <div class="col-xs-6 col-xs-offset-3">
-            <table class="table table-bordered text-center table-responsive" style="width:455px">
+        <div class="col-md-12">
+            <table class="table table-bordered text-center table-responsive" >
                 <tr>
                     <td></td>
                     <td></td>
@@ -127,7 +153,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-xs-6 col-xs-offset-3">
+        <div class="col-md-12">
             <table class="table table-bordered text-center" style="max-width:455px">
                 <tr ng-repeat="s in sequences">
 
@@ -146,6 +172,7 @@
             </table>
         </div>
     </div>
+    </div>
 
     <script>
         (function() {
@@ -161,22 +188,19 @@
 
             app.controller('mainController', ['$scope', '$location', '$httpParamSerializer', function($scope, $location, $httpParamSerializer) {
 
-                $scope.examples = [
-                  {
-                    stringA:'ACTGAT',
-                    stringB:'ACGCA',
-                    match:2,
-                    mismatch:-3,
-                    gap:-2
-                  },
-                  {
-                    stringA:'ACTGATTCA',
-                    stringB:'ACGCATCA',
-                    match:2,
-                    mismatch:-3,
-                    gap:-2
-                  },
-                  {
+                $scope.examples = [{
+                    stringA: 'ACTGAT',
+                    stringB: 'ACGCA',
+                    match: 2,
+                    mismatch: -3,
+                    gap: -2
+                }, {
+                    stringA: 'ACTGATTCA',
+                    stringB: 'ACGCATCA',
+                    match: 2,
+                    mismatch: -3,
+                    gap: -2
+                }, {
                     stringA: 'SEND',
                     stringB: 'AND'
                 }, {
@@ -194,7 +218,7 @@
                     local: true,
                     gap: -2,
                     match: 3,
-                    mismatch:-3
+                    mismatch: -3
                 }];
 
 
@@ -223,7 +247,7 @@
 
                 //keeping it simple atm
                 function scoring(a, b) {
-                    return (a != b ? $scope.mismatch*1 : $scope.match*1); //temp solutions...
+                    return (a != b ? $scope.mismatch * 1 : $scope.match * 1); //temp solutions...
                 }
 
                 $scope.loadExample = function(e) {
