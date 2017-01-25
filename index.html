@@ -14,61 +14,81 @@
         .arrow-left,
         .arrow-diag {
             position: absolute;
-            top: auto;
             font-size: 10px;
             color: #666;
         }
 
         .arrow-up {
-            margin-top: -13px;
-            margin-left: 1px;
+            top: -16px;
         }
 
         .arrow-left {
-            margin-left: -27px;
-            margin-top: 7px;
+            left: -13px;
         }
 
         .arrow-diag {
-            margin-top: -13px;
-            margin-left: -28px;
+            top: -16px;
+            left: -13px;
             transform: rotateZ(45deg);
         }
 
         .path>.arrow-diag {
             color: green;
-            margin-top: -16px;
-            margin-left: -30px;
+            top: -18px;
+            left: -15px;
         }
 
         .path>.arrow-left {
             color: blue;
-
+            left: -15px;
         }
 
         .path>.arrow-up {
             color: red;
-            margin-top:-16px;
+            top: -18px;
         }
 
         .path {
             border: 3px solid #777;
         }
 
+        .table>tbody>tr>td,
         td {
             vertical-align: middle;
         }
 
         .table {
-            width: 455px;
             margin: 0 auto;
-            margin-top: 25px
+            margin-top: 25px;
+            table-layout: fixed;
         }
 
-        #matrix-table > tbody > tr > td {
+        #matrix-table {
+            max-width: 455px;
+            /*width:  100px;*/
+        }
+
+        #matrix-table>tbody>tr>td {
             width: 50px;
             min-width: 0px;
+            max-width: 50px;
+            height: 39px;
+        }
 
+        #matrix-table>tbody>tr>td>div {
+            position: relative;
+        }
+
+        .alignment-sub-table {
+            margin-top: 0px;
+        }
+
+        .alignment-sub-table>tbody>tr>td {
+            border-top: 0;
+        }
+
+        #alignment-table {
+            max-width: 455px;
         }
     </style>
 
@@ -170,6 +190,7 @@
                     <tr ng-repeat="row in matrix track by $index" ng-init="rowIndex = $index">
                         <td><strong ng-if="$index > 0">{{sequenceB[$index-1]}}</strong></td>
                         <td ng-repeat="cell in matrix[rowIndex]  track by $index">
+
                             <div ng-init="t = tMatrix[rowIndex][$index]" ng-class="{'path':cell.path  && showPaths }">
                                 <span class="glyphicon glyphicon-arrow-left arrow-left" ng-if=" cell.left && showArrows "></span>
                                 <span class="glyphicon glyphicon-arrow-up arrow-up" ng-if=" cell.up  && showArrows"></span>
@@ -186,13 +207,20 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <table class="table table-bordered text-center" style="max-width:455px">
+                <table id="alignment-table" class="table table-bordered text-center">
+                    <tr>
+                        <th>Alignment</th>
+                        <th style="width: 66px;">Score</th>
+                    </tr>
                     <tr ng-repeat="s in alignments">
 
                         <td>
-                            <table>
+                            <table class="table text-center alignment-sub-table">
                                 <tr>
                                     <td ng-repeat="s in s.sequenceA.split('') track by $index">{{s}}</td>
+                                </tr>
+                                <tr>
+                                    <td ng-repeat="s in s.matchSequence.split('') track by $index">{{s}}</td>
                                 </tr>
                                 <tr>
                                     <td ng-repeat="s in s.sequenceB.split('') track by $index">{{s}}</td>
