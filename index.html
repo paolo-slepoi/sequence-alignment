@@ -7,6 +7,7 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/angular.js"></script>
     <script src="sequence-alignment.js"></script>
+    <script src="app.js"></script>
     <style>
         .arrow-up,
         .arrow-left,
@@ -29,7 +30,7 @@
 
         .arrow-diag {
             margin-top: -13px;
-            margin-left: -24px;
+            margin-left: -28px;
             transform: rotateZ(45deg);
         }
 
@@ -58,6 +59,12 @@
             margin: 0 auto;
             margin-top: 25px
         }
+
+        td#matrix-table {
+            width: 50px;
+            min-width: 50px;
+            max-width: 50px;
+        }
     </style>
 
 
@@ -71,14 +78,14 @@
             <div class="col-md-8">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>String A</label>
-                        <input type="text" class="form-control" placeholder="String A" ng-model="stringA" ng-change="clear()">
+                        <label>Sequence A</label>
+                        <input type="text" class="form-control" placeholder="sequence A" ng-model="sequenceA" ng-change="clear()">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>String B</label>
-                        <input type="text" class="form-control" placeholder="String B" ng-model="stringB" ng-change="clear()">
+                        <label>Sequence B</label>
+                        <input type="text" class="form-control" placeholder="sequence B" ng-model="sequenceB" ng-change="clear()">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -112,7 +119,7 @@
   </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                             <li ng-repeat="e in examples">
-                                <a ng-click="loadExample(e)">{{e.stringA}} - {{e.stringB}} ({{e.local ? 'LOCAL' : 'GLOBAL'}})</a>
+                                <a ng-click="loadExample(e)">{{e.sequenceA}} - {{e.sequenceB}} ({{e.local ? 'LOCAL' : 'GLOBAL'}})</a>
                             </li>
                         </ul>
                     </div>
@@ -140,163 +147,58 @@
                 </div>
 
 
+
+                <div class="col-md-2">
+                </div>
+            </div>
+
+        </div>
+        <div class="row" ng-if="matrix">
+            <div class="col-md-12">
+                <table id="matrix-table" class="table table-bordered text-center table-responsive">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td ng-repeat="s in sequenceA.split('') track by $index"><strong>{{s}}</strong></td>
+                    </tr>
+
+                    <tr ng-repeat="row in matrix track by $index" ng-init="rowIndex = $index">
+                        <td><strong ng-if="$index > 0">{{sequenceB[$index-1]}}</strong></td>
+                        <td ng-repeat="cell in matrix[rowIndex]  track by $index">
+                            <div ng-init="t = tMatrix[rowIndex][$index]" ng-class="{'path':cell.path  && showPaths }">
+                                <span class="glyphicon glyphicon-arrow-left arrow-left" ng-if=" cell.left && showArrows "></span>
+                                <span class="glyphicon glyphicon-arrow-up arrow-up" ng-if=" cell.up  && showArrows"></span>
+                                <span class="glyphicon glyphicon-arrow-left arrow-diag" ng-if=" cell.diag  && showArrows"></span>
+                                <span>{{cell.score}}</span>
+                            </div>
+                        </td>
+
+                        <!-- <th ng-repeat="s in sequenceA.split('') track by $index">{{s}}</th> -->
+                    </tr>
+
+                </table>
             </div>
         </div>
-        <div class="col-md-2">
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-bordered text-center" style="max-width:455px">
+                    <tr ng-repeat="s in alignments">
+
+                        <td>
+                            <table>
+                                <tr>
+                                    <td ng-repeat="s in s.sequenceA.split('') track by $index">{{s}}</td>
+                                </tr>
+                                <tr>
+                                    <td ng-repeat="s in s.sequenceB.split('') track by $index">{{s}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>{{s.score}}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="row" ng-if="matrix">
-        <div class="col-md-12">
-            <table class="table table-bordered text-center table-responsive">
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td ng-repeat="s in stringA.split('') track by $index"><strong>{{s}}</strong></td>
-                </tr>
-
-                <tr ng-repeat="row in matrix track by $index" ng-init="rowIndex = $index">
-                    <td><strong ng-if="$index > 0">{{stringB[$index-1]}}</strong></td>
-                    <td ng-repeat="cell in matrix[rowIndex]  track by $index">
-                        <div ng-init="t = tMatrix[rowIndex][$index]" ng-class="{'path':cell.path  && showPaths }">
-                            <span class="glyphicon glyphicon-arrow-left arrow-left" ng-if=" cell.left && showArrows "></span>
-                            <span class="glyphicon glyphicon-arrow-up arrow-up" ng-if=" cell.up  && showArrows"></span>
-                            <span class="glyphicon glyphicon-arrow-left arrow-diag" ng-if=" cell.diag  && showArrows"></span>
-                            <span>{{cell.score}}</span>
-                        </div>
-                    </td>
-
-                    <!-- <th ng-repeat="s in stringA.split('') track by $index">{{s}}</th> -->
-                </tr>
-
-            </table>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <table class="table table-bordered text-center" style="max-width:455px">
-                <tr ng-repeat="s in sequences">
-
-                    <td>
-                        <table>
-                            <tr>
-                                <td ng-repeat="s in s.stringA.split('') track by $index">{{s}}</td>
-                            </tr>
-                            <tr>
-                                <td ng-repeat="s in s.stringB.split('') track by $index">{{s}}</td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td>{{s.score}}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    </div>
-
-    <script>
-        (function() {
-            var app = angular.module('sequenceAlignmentDemo', []);
-
-            app.config(function($locationProvider) {
-                $locationProvider.html5Mode({
-                    enabled: true,
-                    requireBase: false
-                });
-            });
-
-
-            app.controller('mainController', ['$scope', '$location', '$httpParamSerializer', function($scope, $location, $httpParamSerializer) {
-
-                $scope.examples = [{
-                    stringA: 'ACTGAT',
-                    stringB: 'ACGCA',
-                    match: 2,
-                    mismatch: -3,
-                    gap: -2,
-                    showPaths:false,
-                    showArrows:false
-                }, {
-                    stringA: 'ACTGATTCA',
-                    stringB: 'ACGCATCA',
-                    match: 2,
-                    mismatch: -3,
-                    gap: -2
-                }, {
-                    stringA: 'SEND',
-                    stringB: 'AND'
-                }, {
-                    stringA: 'GCATGCU',
-                    stringB: 'GATTACA'
-                }, {
-                    stringA: 'GCGTA',
-                    stringB: 'TGCAAT'
-                }, {
-                    stringA: 'CGTGAATTCAT',
-                    stringB: 'GACTTAC'
-                }, {
-                    stringA: 'TGTTACGG',
-                    stringB: 'GGTTGACTA',
-                    local: true,
-                    gap: -2,
-                    match: 3,
-                    mismatch: -3
-                }];
-
-
-                $scope.stringA = $location.search().stringA || $scope.examples[0].stringA;
-                $scope.stringB = $location.search().stringB || $scope.examples[0].stringB;
-
-                // $scope.stringA = $location.search().stringA || 'SEND';
-                // $scope.stringB = $location.search().stringB || 'AND';
-
-                $scope.gap = $location.search().gap !== undefined ? $location.search().gap : -1;
-                $scope.mismatch = $location.search().mismatch !== undefined ? $location.search().mismatch : -1;
-                $scope.match = $location.search().match !== undefined ? $location.search().match : 1;
-                $scope.local = $location.search().local == 'true';
-
-                $scope.showPaths = $location.search().showPaths !== undefined ? $location.search().showPaths == true: true;
-                $scope.showArrows = $location.search().showArrows !== undefined ? $location.search().showArrows == true : true;
-
-
-
-                $scope.localOptions = [{
-                    value: false,
-                    label: 'GLOBAL'
-                }, {
-                    value: true,
-                    label: 'LOCAL'
-                }];
-
-
-
-                //keeping it simple atm
-                function scoring(a, b) {
-                    return (a != b ? $scope.mismatch * 1 : $scope.match * 1); //temp solutions...
-                }
-
-                $scope.loadExample = function(e) {
-                    window.location = window.location.pathname + '?' + $httpParamSerializer(e)
-                };
-
-                $scope.clear = function() {
-                    $scope.matrix = undefined;
-                    $scope.sequences = undefined;
-                }
-
-                $scope.align = function() {
-                    var x = SequenceAlignemnt.align($scope.stringA, $scope.stringB, scoring, $scope.gap * 1, $scope.local);
-                    $scope.matrix = x.matrix;
-                    $scope.sequences = x.sequences;
-                }
-
-                $scope.align();
-
-            }]);
-
-
-
-        })();
-    </script>
 
 </body>
 

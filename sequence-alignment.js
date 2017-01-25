@@ -16,31 +16,31 @@ var SequenceAlignemnt = {
 
         return m;
     },
-    printSequences: function(sequences, scoring, gap) {
-        //      console.log(sequences);
-        for (var i = 0; i < sequences.length; i++) {
+    printAlignments: function(alignments, scoring, gap) {
+        //      console.log(alignments);
+        for (var i = 0; i < alignments.length; i++) {
             console.log('\n');
             var s = 0;
-            for (var j = 0; j < sequences[i].stringA.length; j++) {
-                if (sequences[i].stringA[j] == '-' || sequences[i].stringB[j] == '-')
+            for (var j = 0; j < alignments[i].sequenceA.length; j++) {
+                if (alignments[i].sequenceA[j] == '-' || alignments[i].sequenceB[j] == '-')
                     s += gap;
-                else s += scoring(sequences[i].stringA[j], sequences[i].stringB[j]);
+                else s += scoring(alignments[i].sequenceA[j], alignments[i].sequenceB[j]);
             }
-            console.log(sequences[i].stringA);
-            console.log(sequences[i].stringB);
+            console.log(alignments[i].sequenceA);
+            console.log(alignments[i].sequenceB);
             console.log(s);
         }
 
     },
-    getSequences(matrix, paths, stringA, stringB) {
+    getAlignments(matrix, paths, sequenceA, sequenceB) {
 
-        var sequences = [];
+        var alignments = [];
 
         for (var i = 0; i < paths.length; i++) {
 
             var s = {
-                stringA: '',
-                stringB: '',
+                sequenceA: '',
+                sequenceB: '',
                 score: matrix[paths[i][0][0]][paths[i][0][1]].score
             };
 
@@ -53,14 +53,14 @@ var SequenceAlignemnt = {
 
 
                 if (p[0] + 1 == nextP[0] && p[1] + 1 == nextP[1]) {
-                    s.stringA += stringA[nextP[1] - 1];
-                    s.stringB += stringB[nextP[0] - 1];
+                    s.sequenceA += sequenceA[nextP[1] - 1];
+                    s.sequenceB += sequenceB[nextP[0] - 1];
                 } else if (p[1] + 1 == nextP[1]) {
-                    s.stringA += stringA[nextP[1] - 1];
-                    s.stringB += '-';
+                    s.sequenceA += sequenceA[nextP[1] - 1];
+                    s.sequenceB += '-';
                 } else if (p[0] + 1 == nextP[0]) {
-                    s.stringA += '-';
-                    s.stringB += stringB[nextP[0] - 1];
+                    s.sequenceA += '-';
+                    s.sequenceB += sequenceB[nextP[0] - 1];
                 }
 
                 if (j - 1 == 0) break;
@@ -68,10 +68,10 @@ var SequenceAlignemnt = {
 
             }
             s.path = paths[i];
-            sequences.push(s);
+            alignments.push(s);
         }
 
-        return sequences;
+        return alignments;
     },
     traceBack(matrix, local) {
 
@@ -155,9 +155,9 @@ var SequenceAlignemnt = {
 
         return paths;
     },
-    align: function(stringA, stringB, scoring, gap, local) {
+    align: function(sequenceA, sequenceB, scoring, gap, local) {
         console.log('building score matrix');
-        var m = this.buildMatrix(stringB.length + 1, stringA.length + 1);
+        var m = this.buildMatrix(sequenceB.length + 1, sequenceA.length + 1);
 
 
         for (var r = 1; r < m.length; r++) {
@@ -175,7 +175,7 @@ var SequenceAlignemnt = {
 
                 var left = m[r][c - 1].score + gap;
                 var up = m[r - 1][c].score + gap;
-                var diag = m[r - 1][c - 1].score + scoring(stringA[c - 1], stringB[r - 1]);
+                var diag = m[r - 1][c - 1].score + scoring(sequenceA[c - 1], sequenceB[r - 1]);
                 var score = Math.max(left, up, diag);
 
                 // score = Math.max(left, up, diag,0);
@@ -192,15 +192,15 @@ var SequenceAlignemnt = {
         var paths = this.traceBack(m, local);
         console.log('found ' + paths.length + ' paths');
 
-        console.log('building sequences');
-        var sequences = this.getSequences(m, paths, stringA, stringB);
-        console.log('found ' + sequences.length + ' sequences');
+        console.log('building alignments');
+        var alignments = this.getAlignments(m, paths, sequenceA, sequenceB);
+        console.log('found ' + alignments.length + ' alignments');
 
-        this.printSequences(sequences, scoring, gap);
+        this.printAlignments(alignments, scoring, gap);
 
         return {
             matrix: m,
-            sequences: sequences
+            alignments: alignments
         };
     }
 
