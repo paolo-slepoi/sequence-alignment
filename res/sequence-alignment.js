@@ -81,10 +81,12 @@ var SequenceAlignemnt = {
     traceBack(matrix, local) {
 
         var paths = [];
+        var watchdog = 1000;
 
         function follow(p) {
             var r = p[p.length - 1][0];
             var c = p[p.length - 1][1];
+            if(watchdog -- <= 0) return;
             while (r >= 0 && c >= 0) {
                 var flag = false;
                 var i = r;

@@ -13,10 +13,14 @@
 
         $scope.examples = [{
             sequenceA: 'ACTGAT',
-            sequenceB: 'ACGCA',
-            match: 2,
-            mismatch: -3,
-            gap: -2,
+          //  sequenceB: 'ACGCA',
+            sequenceB: 'ATCAT',
+            match: 1,
+            mismatch: -1,
+            gap: -1,
+            // match: 2,
+            // mismatch: -3,
+            // gap: -2,
             showPaths: false,
             showArrows: false
         }, {
@@ -58,8 +62,8 @@
         $scope.match = $location.search().match !== undefined ? $location.search().match : 1;
         $scope.local = $location.search().local == 'true';
 
-        $scope.showPaths = $location.search().showPaths !== undefined ? $location.search().showPaths == 'true' : true;
-        $scope.showArrows = $location.search().showArrows !== undefined ? $location.search().showArrows == 'true' : true;
+        $scope.showPaths = $location.search().showPaths !== undefined ? $location.search().showPaths == 'true' : false;
+        $scope.showArrows = $location.search().showArrows !== undefined ? $location.search().showArrows == 'true' : false;
 
 
 
