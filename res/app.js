@@ -13,7 +13,7 @@
 
         $scope.examples = [{
             sequenceA: 'ACTGAT',
-          //  sequenceB: 'ACGCA',
+            //  sequenceB: 'ACGCA',
             sequenceB: 'ATCAT',
             match: 1,
             mismatch: -1,
@@ -48,6 +48,10 @@
             gap: -2,
             match: 3,
             mismatch: -3
+        }, {
+            sequenceA: 'CGTGAATTCAT',
+            sequenceB: 'GACTTAC',
+            local: true,
         }];
 
 
