@@ -42,6 +42,7 @@ var SequenceAlignemnt = {
                 sequenceA: '',
                 sequenceB: '',
                 score: matrix[paths[i][0][0]][paths[i][0][1]].score,
+                pathScore:0,
                 matchSequence: '' //helper string, need to find a better name
             };
 
@@ -49,10 +50,10 @@ var SequenceAlignemnt = {
 
                 var p = paths[i][j];
                 //  if(p[0] == p[1] && p[0] == 0) continue;
-
                 var nextP = paths[i][j - 1];
 
-
+                s.pathScore += matrix[nextP[0]][nextP[1]].score;
+                console.log(s.pathScore);
                 if (p[0] + 1 == nextP[0] && p[1] + 1 == nextP[1]) {
                     s.sequenceA += sequenceA[nextP[1] - 1];
                     s.sequenceB += sequenceB[nextP[0] - 1];
